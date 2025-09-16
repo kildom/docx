@@ -37,6 +37,10 @@ type IXmlifyedFileMapping = {
     readonly FontTableRelationships?: IXmlifyedFile;
 };
 
+export type CompilerOutput = {
+    readonly file: (path: string, data: string | Uint8Array | ArrayBuffer) => void;
+};
+
 export class Compiler {
     private readonly formatter: Formatter;
     private readonly imageReplacer: ImageReplacer;
@@ -48,12 +52,20 @@ export class Compiler {
         this.numberingReplacer = new NumberingReplacer();
     }
 
-    public compile(
+    public compile(file: File, prettifyXml?: (typeof PrettifyType)[keyof typeof PrettifyType], overrides?: readonly IXmlifyedFile[]): JSZip;
+    public compile<T extends CompilerOutput>(
+        file: File,
+        prettifyXml: (typeof PrettifyType)[keyof typeof PrettifyType] | undefined,
+        overrides: readonly IXmlifyedFile[] | undefined,
+        output: T,
+    ): T;
+    public compile<T extends CompilerOutput>(
         file: File,
         prettifyXml?: (typeof PrettifyType)[keyof typeof PrettifyType],
         overrides: readonly IXmlifyedFile[] = [],
-    ): JSZip {
-        const zip = new JSZip();
+        output?: T,
+    ): T {
+        const zip: CompilerOutput = output ?? new JSZip();
         const xmlifiedFileMapping = this.xmlifyFile(file, prettifyXml);
         const map = new Map<string, IXmlifyedFile | readonly IXmlifyedFile[]>(Object.entries(xmlifiedFileMapping));
 
@@ -85,7 +97,7 @@ export class Compiler {
             zip.file(`word/fonts/${nameWithoutExtension}.odttf`, obfuscate(buffer, fontKey));
         }
 
-        return zip;
+        return zip as T;
     }
 
     private xmlifyFile(file: File, prettify?: (typeof PrettifyType)[keyof typeof PrettifyType]): IXmlifyedFileMapping {

@@ -269,5 +269,23 @@ describe("Compiler", () => {
 
             compiler.compile(file);
         });
+
+        it("should work with custom output object", () => {
+            const file = new File({
+                sections: [],
+                comments: {
+                    children: [],
+                },
+            });
+
+            let filesCount = 0;
+            compiler.compile(file, undefined, undefined, {
+                file: () => {
+                    filesCount++;
+                },
+            });
+
+            expect(filesCount).greaterThan(0);
+        });
     });
 });

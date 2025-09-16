@@ -214,6 +214,31 @@ describe("Packer", () => {
         });
     });
 
+    describe("#toFiles()", () => {
+        it("should create a standard docx file", () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            vi.spyOn((Packer as any).compiler, "compile").mockReturnValue({
+                generateAsync: () => vi.fn(),
+            });
+            const map = Packer.toFiles(file);
+
+            assert.instanceOf(map, Map);
+        });
+
+        it("should handle exception if it throws any", () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            vi.spyOn((Packer as any).compiler, "compile").mockImplementation(() => {
+                throw new Error();
+            });
+
+            expect(() => Packer.toFiles(file)).toThrowError("");
+        });
+
+        afterEach(() => {
+            vi.resetAllMocks();
+        });
+    });
+
     describe("#toStream()", () => {
         it("should create a standard docx file", async () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

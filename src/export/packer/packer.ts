@@ -3,7 +3,7 @@ import { Stream } from "stream";
 import { File } from "@file/file";
 import { OutputByType, OutputType } from "@util/output-type";
 
-import { Compiler, IXmlifyedFile } from "./next-compiler";
+import { Compiler, CompilerOutput, IXmlifyedFile } from "./next-compiler";
 
 /**
  * Use blanks to prettify
@@ -95,6 +95,21 @@ export class Packer {
         });
 
         return stream;
+    }
+
+    public static toFiles(
+        file: File,
+        prettify?: boolean | (typeof PrettifyType)[keyof typeof PrettifyType],
+        overrides: readonly IXmlifyedFile[] = [],
+    ): ReadonlyMap<string, string | Uint8Array> {
+        const result = new Map<string, string | Uint8Array>();
+        const output: CompilerOutput = {
+            file: (path: string, data: string | Uint8Array | ArrayBuffer) => {
+                result.set(path, data instanceof ArrayBuffer ? new Uint8Array(data) : data);
+            },
+        };
+        this.compiler.compile(file, convertPrettifyType(prettify), overrides, output);
+        return result;
     }
 
     private static readonly compiler = new Compiler();
